@@ -1,40 +1,69 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
-from math import cos, sin
+from math import cos, sin, sqrt, pi
 import math
 from random import random
-
-plt.style.use('seaborn-pastel')
-
-fig = plt.figure(figsize=(8,8))
-ax = plt.axes(xlim=(-1, 1), ylim=(-1, 1))
-line, = ax.plot([], [], lw=3)
-
-points_x, points_y = [],[]
+from geomalg import graham_scan, get_min_angle
 
 
+class Animator:
+    #TODO: вставить камеру из класса celluloid
 
-def init():
-    line.set_data([], [])
-    return line,
+    def __init__(self, point_generator):
+        self.points = []
+        self.generator = point_generator
+        self.convex_hall = ConvexHall()
+
+        for i in range(10):
+            self.points.append(self.generator.get_next())
+        self.convex_hall.update_convex_hall(self.points)
+
+    def iterate(self):
+        points_to_generate = 1
+        while self.generator.max_radius > self.convex_hall.max_radius:
+            new_points = []
+            for i in range(points_to_generate):
+                next_point = self.generator.get_next
+                new_points.append(next_point)
+                self.points.append(next_point)
+            points_to_generate *= 2
+            self.convex_hall.update_convex_hall(new_points)
 
 
-def animate(i):
-    angle = 2*math.pi*random()
-    points_x.append(cos(angle)*i)
-    points_y.append(sin(angle)*i)
-    ax.clear()
-    if len(points_x) > 3*i**0.5+1:
-        points_x.pop(0)
-        points_y.pop(0)
-    scatter = ax.scatter(points_x,points_y)
-    ax.set_xlim(-1-i,1+i)
-    ax.set_ylim(-1 - i, 1 + i)
-    return scatter,
+    def add_point(self):
+        self.points.append(self.generator.get_next)
 
-frames = 225
-anim = FuncAnimation(fig, animate, init_func=init,
-                     frames=frames, interval=100, blit=True)
 
-anim.save(f'points_{frames}_frames.gif', writer='imagemagick')
+
+
+class PointGenerator:
+
+    def __init__(self):
+        self.max_radius: float = 1.0
+        self.generated_points: int = 0
+
+    def get_next(self):
+        self.generated_points += 1
+        angle = random * 2 * pi
+        self.max_radius = 1 / self.generated_points
+        return np.array([cos(angle), sin(angle)]) / self.generated_points
+
+
+class ConvexHall:
+
+    def __init__(self, points: list = []):
+        self.vertices = points
+        self.max_radius = np.inf
+        if self.vertices:
+            self.update_convex_hall(self.vertices)
+
+    def update_convex_hall(self, points: list):
+        self.vertices = graham_scan(self.vertices + points)
+
+        min_vector_len = min([sqrt(x**2+y**2) for x,y in self.vertices])
+        min_angle = get_min_angle(self.vertices)
+        self.max_radius = min_vector_len * cos(min_angle / 2)
+
+
+def main():
