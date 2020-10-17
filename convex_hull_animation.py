@@ -5,7 +5,7 @@ from math import cos, sin, sqrt, pi
 import math
 from celluloid import Camera
 from random import random, seed
-from geom_algorithms import graham_scan, get_min_angle
+from geom_algorithms import graham_scan, get_max_angle
 from datetime import datetime
 
 
@@ -57,7 +57,7 @@ class Animator:
             self.convex_hull_vertices_idxs = graham_scan(self.points)
             vertices = [self.points[idx] for idx in self.convex_hull_vertices_idxs]
             min_vector_len = min([sqrt(x ** 2 + y ** 2) for x, y in vertices])
-            min_angle = get_min_angle(vertices)
+            max_angle = get_max_angle(vertices)
             # fig1 = plt.figure()
             # ax1 = fig1.gca()
             # ax1.set_xlim(-1, 1)
@@ -66,7 +66,7 @@ class Animator:
             #     ax1.scatter(v[0], v[1])
             # fig1.show()
 
-            self.convex_hall_max_radius = min_vector_len * cos(min_angle / 2)
+            self.convex_hall_max_radius = min_vector_len * cos(max_angle / 2)
 
     def snap(self):
         if not self.points:
