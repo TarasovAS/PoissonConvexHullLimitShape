@@ -13,7 +13,6 @@ class Animator:
     def __init__(self, point_generator, generator_seed: int = 0) -> None:
 
         self.fig = plt.figure()
-        self.axis = self.fig.gca()
         self.camera = Camera(self.fig)
 
         self.generator_seed = generator_seed
@@ -40,10 +39,11 @@ class Animator:
                 self.points.append(self.generator.get_next())
             points_to_generate *= 2
             self.update_convex_hull()
-            self.snap()
+            #self.snap()
 
-        self.del_convex_hall_vertices()
         self.snap()
+        self.del_convex_hall_vertices()
+
 
     def del_convex_hall_vertices(self):
         self.points = [point for idx, point in enumerate(self.points) if idx not in self.convex_hull_vertices_idxs]
@@ -69,20 +69,24 @@ class Animator:
             self.convex_hall_max_radius = min_vector_len * cos(min_angle / 2)
 
     def snap(self):
-        #self.axis.clear()
-        coord_lim = max([sqrt(x**2 + y**2) for x, y in self.points]) * 1.5
-        self.axis.set_xlim(-coord_lim, coord_lim)
-        self.axis.set_ylim(-coord_lim, coord_lim)
+        if not self.points:
+            print('Nothing to snap')
+            return None
+
+        scale = 1 / max([sqrt(x**2 + y**2 ) for x,y in self.points])
 
         for point in self.points:
-            self.axis.scatter(point[0], point[1], color='black')
+            plt.scatter(point[0] * scale, point[1] * scale, color='black')
 
         vertices = [self.points[idx] for idx in self.convex_hull_vertices_idxs]
         if vertices:
-            points = vertices[:] + vertices[0]
+            points = vertices[:] + [vertices[0]]
             for point1, point2 in zip(points[:-1], points[1:]):
-                self.axis.plot([point1[0], point2[0]], [point1[1], point2[1]], color='black')
-                self.camera.snap()
+                coordinates_x = [point1[0] * scale, point2[0] * scale]
+                coordinates_y = [point1[1] * scale, point2[1] * scale]
+                plt.plot(coordinates_x, coordinates_y, color='black')
+
+        self.camera.snap()
 
 
 class PointGenerator:
@@ -102,7 +106,7 @@ def main(iterations_num, generator_seed=0):
     generator = PointGenerator()
     animator = Animator(generator, generator_seed)
     animation = animator.film_iterates(iterations_num)
-    animation.save(f'convex_hull_{iterations_num}(iterations){generator_seed}(seed).gif', writer = 'imagemagick')
+    animation.save(f'gifs/convex_hull_{iterations_num}(iterations){generator_seed}(seed).gif', writer='imagemagick')
 
 
-main(iterations_num = 6, generator_seed = 0)
+main(iterations_num=100, generator_seed=0)
