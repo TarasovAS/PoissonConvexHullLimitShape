@@ -30,7 +30,7 @@ class Animator:
     def film_iterates(self, iterates_num):
         for _ in range(iterates_num):
             self.iterate()
-        return self.camera.animate()
+        return self.camera.animate(interval=1000)
 
     def iterate(self):
         points_to_generate = 1
@@ -109,4 +109,4 @@ def main(iterations_num, generator_seed=0):
     animation.save(f'gifs/convex_hull_{iterations_num}(iterations){generator_seed}(seed).gif', writer='imagemagick')
 
 
-main(iterations_num=100, generator_seed=0)
+main(iterations_num=40, generator_seed=0)
