@@ -27,10 +27,10 @@ def graham_scan(points):
     return convex_hall
 
 
-def get_min_angle(points: list) -> float:
+def get_max_angle(points: list) -> float:
     points = points[:] + [points[0]]
     angles = [get_angle(p1, p2) for p1, p2 in zip(points[:-1], points[1:])]
-    return min(angles)
+    return max(angles)
 
 
 def get_angle(p2, p1):
