@@ -12,8 +12,9 @@ from datetime import datetime
 class Animator:
     def __init__(self, point_generator, generator_seed: int = 0) -> None:
 
-        self.fig = plt.figure()
+        self.fig = plt.figure(figsize=(8, 8))
         self.camera = Camera(self.fig)
+        self.iteration_number = 0
 
         self.generator_seed = generator_seed
         seed(self.generator_seed)
@@ -30,20 +31,20 @@ class Animator:
     def film_iterates(self, iterates_num):
         for _ in range(iterates_num):
             self.iterate()
-        return self.camera.animate(interval=1000)
+        return self.camera.animate(interval=500)
 
     def iterate(self):
         points_to_generate = 1
         while self.generator.max_radius > self.convex_hall_max_radius:
             for _ in range(points_to_generate):
                 self.points.append(self.generator.get_next())
-            points_to_generate *= 2
+            points_to_generate += 20
             self.update_convex_hull()
             #self.snap()
 
-        self.snap()
+        self.snap(True)
         self.del_convex_hall_vertices()
-
+        self.iteration_number += 1
 
     def del_convex_hall_vertices(self):
         self.points = [point for idx, point in enumerate(self.points) if idx not in self.convex_hull_vertices_idxs]
@@ -68,7 +69,7 @@ class Animator:
 
             self.convex_hall_max_radius = min_vector_len * cos(max_angle / 2)
 
-    def snap(self):
+    def snap(self, draw_convex_hull: bool):
         if not self.points:
             print('Nothing to snap')
             return None
@@ -79,13 +80,14 @@ class Animator:
             plt.scatter(point[0] * scale, point[1] * scale, color='black')
 
         vertices = [self.points[idx] for idx in self.convex_hull_vertices_idxs]
-        if vertices:
+        if vertices and draw_convex_hull:
             points = vertices[:] + [vertices[0]]
             for point1, point2 in zip(points[:-1], points[1:]):
                 coordinates_x = [point1[0] * scale, point2[0] * scale]
                 coordinates_y = [point1[1] * scale, point2[1] * scale]
-                plt.plot(coordinates_x, coordinates_y, color='black')
-
+                plot_ = plt.plot(coordinates_x, coordinates_y, color='black')
+        plt.legend(plot_, [f'iteration number {self.iteration_number}'])
+        plt.axis('off')
         self.camera.snap()
 
 
@@ -109,4 +111,4 @@ def main(iterations_num, generator_seed=0):
     animation.save(f'gifs/convex_hull_{iterations_num}(iterations){generator_seed}(seed).gif', writer='imagemagick')
 
 
-main(iterations_num=40, generator_seed=0)
+main(iterations_num=20, generator_seed=1)
