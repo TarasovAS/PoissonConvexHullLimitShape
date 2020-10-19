@@ -28,12 +28,14 @@ def graham_scan(points):
 
 
 def get_max_angle(points: list) -> float:
+    """ from list of vectors return max clockwise angle between two sequential"""
     points = points[:] + [points[0]]
     angles = [get_angle(p1, p2) for p1, p2 in zip(points[:-1], points[1:])]
     return max(angles)
 
 
 def get_angle(p2, p1):
+    """ compute clockwise angle between vectors"""
     angle = arctg(p2[0], p2[1]) - arctg(p1[0], p1[1])
     if angle < 0:
         angle += 2*pi

@@ -1,6 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
-from math import cos, sin, sqrt, pi
+from math import cos, sin, sqrt, pi, exp
 from celluloid import Camera
 from random import random, seed
 from geom_algorithms import graham_scan, get_max_angle
@@ -38,12 +38,13 @@ class Animator:
         points_to_generate = 1
         self.iteration_number += 1
         self.snap(update_scale=True)
-        while self.generator.max_radius > self.convex_hall_max_radius:
-            for _ in range(points_to_generate):
-                self.points.append(self.generator.get_next())
-            points_to_generate += len(self.points) // 5 + 1
-            self.update_convex_hull()
-        self.snap()
+        if self.generator.max_radius > self.convex_hall_max_radius:
+            while self.generator.max_radius > self.convex_hall_max_radius:
+                for _ in range(points_to_generate):
+                    self.points.append(self.generator.get_next())
+                points_to_generate += len(self.points) // 5 + 1
+                self.update_convex_hull()
+            self.snap()
         self.snap(draw_convex_hull=True)
         self.del_convex_hall_vertices()
         self.snap()
@@ -90,15 +91,18 @@ class Animator:
 
 class PointGenerator:
 
-    def __init__(self):
+    def __init__(self, vec_radius_from_num=lambda n: 1/n):
         self.max_radius: float = 1.0
         self.generated_points: int = 0
+        self.vec_radius_from_num = vec_radius_from_num
 
-    def get_next(self):
+    def get_next(self):  # TODO: write generator with guaranties of max_radius
         self.generated_points += 1
+
         angle = random() * 2 * pi
-        self.max_radius = 1 / self.generated_points
-        return np.array([cos(angle), sin(angle)]) / self.generated_points
+        radius = self.vec_radius_from_num(self.generated_points)
+        self.max_radius = self.vec_radius_from_num(self.generated_points)
+        return np.array([cos(angle), sin(angle)]) * self.vec_radius_from_num(self.generated_points)
 
 
 def main(iterations_num, generator_seed=0):
@@ -111,4 +115,4 @@ def main(iterations_num, generator_seed=0):
     animation.save(f'gifs/convex_hull_{iterations_num}(iterations){generator_seed}(seed).gif', writer='imagemagick')
 
 
-main(iterations_num=15, generator_seed=5)
+main(iterations_num=15, generator_seed=3)
